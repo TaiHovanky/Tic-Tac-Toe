@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+<script src = "//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+<style>
+#titleDiv {
+  text-align:center;
+}
+
+#title {
+  margin-bottom: 0px;
+  font-weight: bold;
+  font-size: 60px;
+}
+
+.box {
+  text-align: center;
+  height: 80px;
+  line-height:80px;
+  font-size: 60px;
+  font-weight: bold;
+}
+
+#row1 {
+  margin-top: 50px;  
+}
+
+.top {
+  border-bottom: 5px solid;  
+}
+
+.bottom {
+  border-top: 5px solid;
+}
+
+.left {
+  border-right: 5px solid;
+}
+
+.right {
+  border-left: 5px solid;
+}
+
+#reset {
+  margin-top: 60px;
+  margin-bottom: 40px;
+  font-weight: bold;
+  color: white;
+  background-color: black;
+}
+</style>
+<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+</head>
+
+<body>
+<div id="titleDiv">
+<h1 id="title">TIC TAC TOE</h1>
+</div>
+<div class="container">   
+  
+  <div class="row" id="row1">
+    <div class="col-md-2 col-md-offset-3 col-xs-3 col-xs-offset-1 box corner top left" id="1">
+    </div>
+    <div class="col-md-2 col-xs-3 box side top" id="2">
+    </div>
+    <div class="col-md-2 col-xs-3 box corner top right" id="3">
+    </div>
+  </div>
+  <div class="row" id="row2">
+    <div class="col-md-2 col-md-offset-3 col-xs-3 col-xs-offset-1 box side left" id="4">
+    </div>
+    <div class="col-md-2 col-xs-3 box center" id="5">
+    </div>
+    <div class="col-md-2 col-xs-3 box side right" id="6">
+    </div>
+  </div>
+  <div class="row" id="row3">
+    <div class="col-md-2 col-md-offset-3 col-xs-3 col-xs-offset-1 box corner bottom left" id="7">
+    </div>
+    <div class="col-md-2 col-xs-3 box side bottom" id="8">
+    </div>
+    <div class="col-md-2 col-xs-3 box corner bottom right" id="9">
+    </div>
+  </div>
+  <div id="resetDiv">
+    <button class="btn col-md-2 col-md-offset-5 col-xs-3 col-xs-offset-4" id="reset">Reset</button>
+  </div>
+</div>
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+  var playerBoxesArr = [];
+  var compBoxesArr = [];
+  var playerXo = "";
+  var compXo = "";
+  
+  function choice(){ //prompts the player to choose between X and O
+    playerXo = prompt("type 'x' or 'o'"); 
+    if(playerXo === "x" || playerXo == "X"){ //if the player types "x" into the prompt, the computer is "o" and vice versa
+      compXo = "o";
+    } else if (playerXo === "o" || playerXo === "O"){
+      compXo = "x";
+    } else {
+      playerXo = prompt("type 'x' or 'o'");
+    }
+  }
+  
+  var wins = [
+    [1,2,3],
+    [4,5,6],
+    [7,8,9],
+    [1,4,7],
+    [2,5,8],
+    [3,6,9],
+    [1,5,9],
+    [3,5,7]
+  ];
+  var inRow = 0;
+  var compMoveMade = false;
+  var gameOver = false;
+  
+  function makeMove(x){
+    if($("#"+x).html() !== "x" && $("#"+x).html() !== "o" && compMoveMade == false){  //if the box that a move will be made in is empty and compMoveMade is false, computer makes a move
+      $("#"+ x).html(compXo); //places the o in the box
+      compMoveMade = true; //indicates that computer has made a move
+      compBoxesArr.push(x); //adds the value of "x" to the compBoxesArr which keeps track of the computer's moves     
+    } 
+  }
+  
+  function randomMove(){ //lets the computer move to a random box
+        var moveNum = Math.ceil(Math.random()*9); //generates a number between 1 and 9 (9 boxes)
+        var isUsed = 0; //variable is used to see if that box has already been occupied by the player or the computer
+        for(var a=0; a<=playerBoxesArr.length; a++){ //for loop iterates for the length of the playerBoxesArr to see if moveNum is in that array. If it is, then the box is occupied and we add 1 to isUsed
+          if(playerBoxesArr[a] == moveNum){
+            isUsed = isUsed + 1; 
+            break; //break the for loop
+          }
+        }
+        for(var a=0; a<=compBoxesArr.length; a++){ //same logic is used as above to see if the computer has made a move there
+          if(compBoxesArr[a] == moveNum){
+            isUsed = isUsed + 1;
+            break;
+          }
+        }  //below, a recursion is used to keep generating a random number until isUsed is 0. In other words, we keep generating random numbers till we get one that isn't in playerBoxesArr or compBoxesArr 
+        if(isUsed == 0){
+          makeMove(moveNum);
+          compMoveMade = true; //if the moveNum box wasn't used yet, we call the makeMove function and set compMoveMade to true
+        } else {
+          randomMove(); //call the function again 
+        }
+  }
+  
+  function reset(){ //this is used to clear the board for a new game
+    $(".box").empty();
+    playerBoxesArr = [];
+    compBoxesArr = [];
+    compMoveMade = true;
+    gameOver = true;
+    choice();
+    return gameOver;
+  }
+  
+  $("#reset").click(function(){
+    reset();
+  });
+  
+  function isWin(){ //checks to see if player has won
+    for (var a=0; a<wins.length; a++){
+      inRow = 0; //each sub-array containing winning sets of boxes needs to have the inRow count reset
+      for (var b=0; b<wins[a].length; b++){
+        for (var c=0; c<playerBoxesArr.length; c++){
+          if(playerBoxesArr[c] == wins[a][b]){
+            inRow = inRow + 1; //everytime a number in the playerBoxesAr, which contains the moves made by the player, matches one of the elements of the sub-array, 1 gets added to inRow
+          }
+        } //end of checking player moves against winning sub array
+        if (inRow === 3){ //if we get inRow = 3 (three in a row) then the player wins and we break out of the loop         
+          alert("You win!");
+          reset();
+        }
+      }
+    }
+  }
+  
+  function compWin(){ //checks for a computer win using the same code and logic as above
+    for (var a=0; a<wins.length; a++){
+      inRow = 0;
+      for (var b=0; b<wins[a].length; b++){
+        for (var c=0; c<compBoxesArr.length; c++){
+          if(compBoxesArr[c] == wins[a][b]){
+            inRow = inRow + 1;
+          }
+        } //end of checking player moves against winning sub array
+        if (inRow === 3){
+          alert("Computer wins!");          
+          reset();
+        }
+      }
+    }
+  }
+  
+  function playerTwoInRow(){
+    for(var e=1; e<=playerBoxesArr.length+2; e++){
+      if(playerBoxesArr.indexOf(e)>-1 && playerBoxesArr.indexOf(e+1)>-1){ //covers horizontal 2 in row by player
+        var f = e+2;
+        var g= e-1;
+        if(f==6 || f==3 || f==9){
+          makeMove(f);
+        } else if(e==2 || e==5 || e==8){
+          makeMove(g);
+        }
+      }
+      if(playerBoxesArr.indexOf(e)>-1 && playerBoxesArr.indexOf(e+3)>-1){ //covers vertical 2 in row
+        var f=e+6;
+        var g=e-3;
+        if(f==7 || f==8 || f==9){ //if player occupies top 2 boxes
+          makeMove(f);
+        } else if(e==4 || e==5 || e==6){ //if player occupies bottom 2 boxes
+          makeMove(g);
+        }
+      }
+      if(playerBoxesArr.indexOf(e)>-1 && playerBoxesArr.indexOf(e+2)>-1 && e % 2 == 1){ //covers diagonal 2 in row where player occupies boxes 3 and 5
+        var f=e+4;
+        if(f==7){
+          makeMove(f);
+        } 
+      }
+      if(playerBoxesArr.indexOf(1)>-1 && playerBoxesArr.indexOf(5)>-1){ //covers diagonal 2 in row where player occupies boxes 1 and 5
+        var f=9;
+        makeMove(f);        
+      }
+      if(playerBoxesArr.indexOf(e)>-1 && playerBoxesArr.indexOf(e+6)>-1){ //covers vertical 1 on top and 1 on bottom and the middle needs to be occupied by computer to prevent player win
+        var f=e+3;
+        if(f==4 || f==5 || f==6){
+          makeMove(f);
+        }
+      }
+    }
+  }
+  
+  function compTwoInRow(){
+    for(var r=1; r<=compBoxesArr.length+2; r++){
+      if(compBoxesArr.indexOf(r)>-1 && compBoxesArr.indexOf(r+1)>-1){
+        var s = r+2;
+        var t = r-1;
+        if(s==6 || s==3 || s==9){
+        makeMove(s);
+        } else if(r==2 || r==5 || r==8){
+          makeMove(t);
+        }
+      }
+      if(compBoxesArr.indexOf(r)>-1 && compBoxesArr.indexOf(r+3)>-1){ //looks for vertical 2 in row
+        var s=r+6; //covers scenario where top 2 boxes covered by computer
+        var t=r-1; //covers scenario where bottom 2 boxes occupied by computer
+        if(s==7 || s==8 || s==9){
+          makeMove(s); //top 2 boxes
+        } else if(r==4 || r==5 || r==6){
+          makeMove(t); //bottom 2 boxes
+        }
+      }
+      if(compBoxesArr.indexOf(r)>-1 && compBoxesArr.indexOf(r+2)>-1 && r % 2 == 1){ //if computer has diagonal 2 in row at 3 and 5
+        var s=r+4;
+        if(s==7){
+          makeMove(s);
+        }
+      }
+      if(compBoxesArr.indexOf(1)>-1 && compBoxesArr.indexOf(5)>-1){ //if computer has diagonal 2 in row at 1 and 5
+        var s=9;
+        makeMove(s);        
+      }
+      if(compBoxesArr.indexOf(r)>-1 && compBoxesArr.indexOf(r+6)>-1){ //if computer has top and bottom boxes occupied and needs to occupy middle to win
+        var s=r+3;
+        if(s==4 || s==5 || s==6){
+          makeMove(s);
+        }
+      }
+    }
+  }
+  
+  function playerMove(){
+    $(".box").click(function(){
+      $(this).html(playerXo); //whatever player clicks has an X 
+      var arrItem = parseInt($(this).attr("id")); //we're pulling the number from the box's ID and then turning it into an integer
+      playerBoxesArr.push(arrItem); //adds to the array of boxes that the player has selected. This is used in the isWin function to see if the player has won
+      gameOver = false;
+      isWin(); //this function runs with every move because we want the program to check for a win with every move
+      compMoveMade = false;
+      playerTwoInRow();
+      compTwoInRow();
+      //computer's turn - the computer makes a move whenever the player clicks on it
+       //every time the player clicks, the compMoveMade variable gets reset to false. This variable keeps the computer from making multiple moves
+      if(compMoveMade == false && gameOver == false){ //if the computer hasn't made a move, call the randomMove() function
+        randomMove();
+      }
+      compWin(); //after the computer has made a move, check to see if the computer has won
+    });
+  }
+  
+  choice(); //when the page loads, the first thing is to prompt the player to pick X or O
+  playerMove(); //call the playerMove function to have it execute
+});
+</script>
+
+</body>
